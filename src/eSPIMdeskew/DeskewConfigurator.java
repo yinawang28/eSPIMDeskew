@@ -41,6 +41,7 @@ public class DeskewConfigurator extends javax.swing.JFrame implements ProcessorC
         jLabel_angleunit = new javax.swing.JLabel();
         jLabel_timepoint = new javax.swing.JLabel();
         jTextField_interval = new javax.swing.JTextField();
+        jCheckBox_saveDeskewFile = new javax.swing.JCheckBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -62,106 +63,141 @@ public class DeskewConfigurator extends javax.swing.JFrame implements ProcessorC
         jLabel_Pixelsize.setText("Pixelsize");
 
         jTextField_Pixelsize.setText("100");
+        jTextField_Pixelsize.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                jTextField_PixelsizeMouseEntered(evt);
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                jTextField_PixelsizeMouseExited(evt);
+            }
+        });
 
         jLabel_Pixelsizeunit.setText("(nm)");
 
         jLabel_Angle.setText("Lightsheet angle");
 
         jTextField_Angle.setText("30");
+        jTextField_Angle.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                jTextField_AngleMouseEntered(evt);
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                jTextField_AngleMouseExited(evt);
+            }
+        });
 
         jLabel_angleunit.setText("(degree)");
 
         jLabel_timepoint.setText("Volume interval to deskew:");
 
         jTextField_interval.setText("10");
-        jTextField_interval.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextField_intervalActionPerformed(evt);
-            }
-        });
+
+        jCheckBox_saveDeskewFile.setText("Save deskew file");
+        jCheckBox_saveDeskewFile.setActionCommand("Save deskew file");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jCheckBox_saveDeskewFile)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel_timepoint)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jTextField_interval, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGap(24, 24, 24))
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                .addGroup(layout.createSequentialGroup()
-                                    .addGap(20, 20, 20)
-                                    .addComponent(jLabel_zstep, javax.swing.GroupLayout.PREFERRED_SIZE, 48, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                    .addComponent(jTextField_zstep, javax.swing.GroupLayout.PREFERRED_SIZE, 58, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                    .addGap(26, 26, 26)
-                                    .addComponent(jTextField_Angle, javax.swing.GroupLayout.PREFERRED_SIZE, 59, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(18, 18, 18)
-                                .addComponent(jLabel_Pixelsize)
-                                .addGap(18, 18, 18)
-                                .addComponent(jTextField_Pixelsize)))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel_zstepunit)
-                            .addComponent(jLabel_Pixelsizeunit)
-                            .addComponent(jLabel_angleunit)))
-                    .addGroup(layout.createSequentialGroup()
                         .addGap(18, 18, 18)
+                        .addComponent(jLabel_Angle, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel_Angle, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel_timepoint)
-                                .addGap(18, 18, 18)
-                                .addComponent(jTextField_interval, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)))))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                .addGap(20, 20, 20)
+                                .addComponent(jLabel_zstep, javax.swing.GroupLayout.PREFERRED_SIZE, 48, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(jTextField_zstep, javax.swing.GroupLayout.PREFERRED_SIZE, 58, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                .addGap(26, 26, 26)
+                                .addComponent(jTextField_Angle, javax.swing.GroupLayout.PREFERRED_SIZE, 59, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGroup(layout.createSequentialGroup()
+                            .addGap(18, 18, 18)
+                            .addComponent(jLabel_Pixelsize)
+                            .addGap(18, 18, 18)
+                            .addComponent(jTextField_Pixelsize, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel_zstepunit)
+                    .addComponent(jLabel_Pixelsizeunit)
+                    .addComponent(jLabel_angleunit))
+                .addContainerGap(23, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jTextField_zstep, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel_zstep, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jTextField_zstep, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel_zstep, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel_Pixelsize)
+                            .addComponent(jTextField_Pixelsize, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel_Pixelsizeunit))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jLabel_Angle, javax.swing.GroupLayout.PREFERRED_SIZE, 14, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jTextField_Angle, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel_angleunit)))
                     .addComponent(jLabel_zstepunit))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGap(18, 18, 18)
+                .addComponent(jCheckBox_saveDeskewFile)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 5, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel_Pixelsize)
-                    .addComponent(jTextField_Pixelsize, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel_Pixelsizeunit))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jLabel_Angle, javax.swing.GroupLayout.PREFERRED_SIZE, 14, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jTextField_Angle, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel_angleunit))
-                .addGap(23, 23, 23)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jTextField_interval, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel_timepoint))
-                .addContainerGap(19, Short.MAX_VALUE))
+                    .addComponent(jLabel_timepoint)
+                    .addComponent(jTextField_interval, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(26, 26, 26))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
     private void jTextField_zstepMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTextField_zstepMouseEntered
-        // TODO add your handling code here:
         if(studio_.acquisitions().isAcquisitionRunning()){
             jTextField_zstep.disable();
         }
     }//GEN-LAST:event_jTextField_zstepMouseEntered
 
     private void jTextField_zstepMouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTextField_zstepMouseExited
-        // TODO add your handling code here:
         jTextField_zstep.enable();
     }//GEN-LAST:event_jTextField_zstepMouseExited
 
-    private void jTextField_intervalActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField_intervalActionPerformed
-        // TODO add your handling code here:
-        studio_.data().notifyPipelineChanged();
-    }//GEN-LAST:event_jTextField_intervalActionPerformed
+    private void jTextField_PixelsizeMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTextField_PixelsizeMouseEntered
+        if(studio_.acquisitions().isAcquisitionRunning()){
+            jTextField_Pixelsize.disable();
+        }
+    }//GEN-LAST:event_jTextField_PixelsizeMouseEntered
+
+    private void jTextField_PixelsizeMouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTextField_PixelsizeMouseExited
+        jTextField_Pixelsize.enable();
+    }//GEN-LAST:event_jTextField_PixelsizeMouseExited
+
+    private void jTextField_AngleMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTextField_AngleMouseEntered
+        if(studio_.acquisitions().isAcquisitionRunning()){
+            jTextField_Angle.disable();
+            jTextField_Angle.setToolTipText("Editting disabled during acquisition!");
+        }
+    }//GEN-LAST:event_jTextField_AngleMouseEntered
+
+    private void jTextField_AngleMouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTextField_AngleMouseExited
+        jTextField_Angle.enable();
+    }//GEN-LAST:event_jTextField_AngleMouseExited
 
     /**
      * @param args the command line arguments
@@ -199,6 +235,7 @@ public class DeskewConfigurator extends javax.swing.JFrame implements ProcessorC
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JCheckBox jCheckBox_saveDeskewFile;
     private javax.swing.JLabel jLabel_Angle;
     private javax.swing.JLabel jLabel_Pixelsize;
     private javax.swing.JLabel jLabel_Pixelsizeunit;
@@ -226,6 +263,10 @@ public class DeskewConfigurator extends javax.swing.JFrame implements ProcessorC
     
     public int getVolumeinterval() {
       return (int) Integer.parseInt(jTextField_interval.getText());
+    }
+    
+    public boolean getSaveFileCheckbox(){
+        return (boolean) jCheckBox_saveDeskewFile.isSelected();
     }
     
     @Override

@@ -9,8 +9,10 @@ package eSPIMdeskew;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.ArrayList;
 import mmcorej.CMMCore;
+
+import ij.process.ImageProcessor;
+
 import org.micromanager.Studio;
 import org.micromanager.data.Image;
 import org.micromanager.data.Processor;
@@ -19,7 +21,6 @@ import org.micromanager.acquisition.SequenceSettings;
 import org.micromanager.data.Datastore;
 import org.micromanager.data.Coords;
 import org.micromanager.data.Metadata;
-import javax.swing.JOptionPane;
 /**
  *
  * @author Yina
@@ -37,6 +38,7 @@ public class DeskewProcessor extends Processor{
     public int framePerVolume;
     public double deskewfactor;
     static boolean startDeskewDisplay = false;
+    public String savePath;
     
     public static int interval_;
     
@@ -63,19 +65,17 @@ public class DeskewProcessor extends Processor{
     @Override
     public void processImage(Image image, ProcessorContext pc) {
         //get the coords of the image
-        int timeIndex = image.getCoords().getTimePoint();
-        int zIndex = image.getCoords().getZ();
-        
-        //check interval_ updating at the beginning of each volume
-        if (zIndex == 0){
+        int zIndex = image.getCoords().getZ();       
+        if (zIndex == 0){//check interval_ updating at the beginning of each volume
             interval_ = Configurator_.getVolumeinterval();
         }
         
-        if(timeIndex % interval_ == 0){
+        if(atInterval(image)){
             //initialize deskew datastore at the beginning
-            if(timeIndex == 0 && zIndex == 0){
+            if(atAcquisitionBeginning(image)){
+                savePath = studio_.displays().getCurrentWindow().getDatastore().getSavePath() + "_deskew";  
                 Image deskewed = deskewSingleImage(image, framePerVolume, newDeskewSize, (float) deskewfactor);
-                deskew = studio_.displays().show(deskewed);
+                deskew = studio_.displays().show(deskewed);   
             }else{
                 //add new images to deskew datastore
                 Image deskewed = deskewSingleImage(image, framePerVolume, newDeskewSize, (float) deskewfactor);
@@ -85,20 +85,51 @@ public class DeskewProcessor extends Processor{
                     Logger.getLogger(DeskewProcessor.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-            
             if (zIndex == (framePerVolume - 1)){
                 deskewVolumeid++;
             }
         }
                    
         pc.outputImage(image);  
+        
+        if(atAcquisitionEnd(image)){
+            try {
+                    deskew.save(Datastore.SaveMode.MULTIPAGE_TIFF, savePath);
+                } catch (IOException ex) {
+                    Logger.getLogger(DeskewProcessor.class.getName()).log(Level.SEVERE, null, ex);
+                }
+        }
+    }
+    
+    private boolean atInterval(Image image){
+        int index = image.getCoords().getTimePoint();
+        return (index % interval_ == 0);
+    }
+    
+    private boolean atAcquisitionBeginning(Image image){
+        int timeIndex = image.getCoords().getTimePoint();
+        int zIndex = image.getCoords().getZ();
+        return (timeIndex == 0 && zIndex == 0);
+    }
+    
+    private boolean atAcquisitionEnd(Image image){
+        int timeIndex = image.getCoords().getTimePoint();
+        int zIndex = image.getCoords().getZ();
+        
+        int timeEnd = (int) seqSettings_.numFrames;
+        return (timeIndex == (timeEnd-1) && zIndex == (framePerVolume-1));
     }
     
     private Image deskewSingleImage(Image image, int framePerVolume, int newDeskewSize, float deskewFactor){
-        Image newimage; 
+        Image newImage, imageFlip;
+        
+        ImageProcessor proc = studio_.data().ij().createProcessor(image);
+        proc.flipHorizontal();
+        proc = proc.rotateRight();
+        imageFlip = studio_.data().ij().createImage(proc, image.getCoords(), image.getMetadata());
+        
         short[] deskewpixels = new short[imageHight * newDeskewSize];
-        short rawpixels[] =(short[]) image.getRawPixels();        //reference to rawpixels of image
-        //Object deskewpixels = image.getRawPixelsCopy();
+        short rawpixels[] =(short[]) imageFlip.getRawPixels();        //reference to rawpixels of image
         
         Coords.CoordsBuilder coordsBuilder = image.getCoords().copy();               //get coords builder
         Metadata.MetadataBuilder metadataBuilder = image.getMetadata().copy();        //get metadata builder
@@ -125,7 +156,7 @@ public class DeskewProcessor extends Processor{
                 }
             }
         }
-        newimage = studio_.data().createImage(deskewpixels, newDeskewSize, imageHight, 2, 1, coords, metadata);
-        return newimage;
+        newImage = studio_.data().createImage(deskewpixels, newDeskewSize, imageHight, 2, 1, coords, metadata);
+        return newImage;
     }
 }
