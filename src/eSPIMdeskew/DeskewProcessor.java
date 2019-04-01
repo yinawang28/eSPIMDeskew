@@ -62,8 +62,8 @@ public class DeskewProcessor extends Processor{
         int pixelsize = configurator_.getPixelsize();
         saveDeskew = configurator_.getSaveFileCheckbox();
         
-        imageWidth = (int) mmc.getImageWidth();
-        imageHight = (int) mmc.getImageHeight();
+        imageHight = (int) mmc.getImageWidth(); //swap height and width due to 90degree rotation
+        imageWidth = (int) mmc.getImageHeight();
         framePerVolume = (int) seqSettings_.slices.size();
         
         // calculate parameters for deskew
@@ -148,7 +148,7 @@ public class DeskewProcessor extends Processor{
         //TODO: flip and rotate image using user specific parameters.
         ImageProcessor proc = studio_.data().ij().createProcessor(image);
         proc.flipHorizontal();      //flip and rotate according current Yosemite eSPIM setup
-        proc = proc.rotateRight();
+        proc = proc.rotateLeft();
         imageFlip = studio_.data().ij().createImage(proc, image.getCoords(), image.getMetadata());
         
         short[] deskewpixels = new short[imageHight * newDeskewSize];
@@ -171,7 +171,8 @@ public class DeskewProcessor extends Processor{
                 if (xin >= 0 && xin < imageWidth - 1){
                     int index = yout*imageWidth + (int)Math.floor(xin);
                     float offset = (float) (xin - Math.floor(xin));
-                    short weighted = (short)((1-offset)*rawpixels[index] + offset*rawpixels[index+1]);
+                    
+                    short weighted = (short)((1-offset)*(int)(rawpixels[index]&0xffff) + offset*(int)(rawpixels[index+1]&0xffff));
                     deskewpixels[yout*newDeskewSize+xout] = weighted;
                 }else{
                     deskewpixels[yout*newDeskewSize+xout]=zeropad;
