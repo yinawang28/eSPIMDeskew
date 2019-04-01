@@ -1,7 +1,6 @@
 package eSPIMdeskew;
 
 import org.micromanager.PropertyMap;
-import org.micromanager.PropertyMaps;
 import org.micromanager.Studio;
 import org.micromanager.data.ProcessorConfigurator;
 /**
@@ -283,13 +282,6 @@ public class DeskewConfigurator extends javax.swing.JFrame implements ProcessorC
 
     @Override
     public PropertyMap getSettings() { 
-        /*PropertyMap.Builder builder = PropertyMaps.builder(); 
-        builder.putDouble("zstep", getZstep());
-        builder.putDouble("angle", getAngle());
-        builder.putInt("pixelsize", getPixelsize());
-        builder.putInt("interval",getVolumeinterval());
-        return builder.build();*/
-        
         PropertyMap.PropertyMapBuilder builder = studio_.data().getPropertyMapBuilder();
         return builder.build();
     }

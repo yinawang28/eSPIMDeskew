@@ -20,7 +20,6 @@ import org.micromanager.data.ProcessorContext;
 import org.micromanager.acquisition.SequenceSettings;
 import org.micromanager.data.internal.multipagetiff.StorageMultipageTiff;
 import org.micromanager.data.Storage;
-import org.micromanager.internal.MMStudio;
 import org.micromanager.data.Datastore;
 import org.micromanager.data.Coords;
 import org.micromanager.data.Metadata;
@@ -32,41 +31,43 @@ import org.micromanager.display.DisplayWindow;
 public class DeskewProcessor extends Processor{
     Studio studio_;
     CMMCore mmc;
-    SequenceSettings seqSettings_;
-    Datastore deskew;
-    DeskewConfigurator Configurator_;
+    Datastore deskew;   //for deskewed data storage and display
+    DeskewConfigurator configurator_;   //Deskew processing settings
+    SequenceSettings seqSettings_;      //get MDA acquisitiosn settings
     
-    volatile int deskewVolumeid = 0;
+    volatile int deskewVolumeid = 0;    //counting the number of deskewed volumes
     
     public int imageWidth,imageHight, newDeskewSize;
     public int framePerVolume;
     public double deskewfactor;
     static boolean startDeskewDisplay = false;
-    public boolean saveImage;
+    public boolean saveDeskew;
     public String savePath;
+    
     public Storage fileSaver;
     public DisplayWindow displayDeskew;
     
-    public static int interval_;
+    public static int interval_;        //can be changed during acquisition
     
     public DeskewProcessor(Studio studio, DeskewConfigurator MyConfigurator)
     {
         studio_=studio;
         mmc=studio_.getCMMCore();
-        Configurator_ = MyConfigurator;
+        configurator_ = MyConfigurator;
         seqSettings_ = studio_.acquisitions().getAcquisitionSettings();
-        interval_ = Configurator_.getVolumeinterval();
+        interval_ = configurator_.getVolumeinterval();
         
-        double zstep = Configurator_.getZstep();
-        double angle = Configurator_.getAngle();
-        int pixelsize = Configurator_.getPixelsize();
-        saveImage = Configurator_.getSaveFileCheckbox();
+        double zstep = configurator_.getZstep();
+        double angle = configurator_.getAngle();
+        int pixelsize = configurator_.getPixelsize();
+        saveDeskew = configurator_.getSaveFileCheckbox();
         
         imageWidth = (int) mmc.getImageWidth();
         imageHight = (int) mmc.getImageHeight();
         framePerVolume = (int) seqSettings_.slices.size();
+        
+        // calculate parameters for deskew
         deskewfactor = (float)  Math.cos(angle * Math.PI / 180) * zstep / (pixelsize / 1000.0);
-        //TODO: should consider the input from imageflipper
         newDeskewSize = (int) Math.ceil(imageWidth + deskewfactor * framePerVolume); 
     }
     
@@ -74,14 +75,15 @@ public class DeskewProcessor extends Processor{
     public void processImage(Image image, ProcessorContext pc) {
         //get the coords of the image
         int zIndex = image.getCoords().getZ();       
-        if (zIndex == 0){//check interval_ updating at the beginning of each volume
-            interval_ = Configurator_.getVolumeinterval();
+        if (zIndex == 0){
+            //check interval_ updating at the beginning of each volume
+            interval_ = configurator_.getVolumeinterval();
         }
         
-        if(atInterval(image)){
+        if(deskewRequested(image)){
             //initialize deskew multipage TIFF datastore and display at the beginning
             if(atAcquisitionBeginning(image)){
-                if(saveImage){
+                if(saveDeskew){
                     savePath = studio_.displays().getCurrentWindow().getDatastore().getSavePath() + "_deskew";  
                     try {
                         deskew = studio_.data().createMultipageTIFFDatastore(savePath, true, StorageMultipageTiff.getShouldSplitPositions());
@@ -106,12 +108,10 @@ public class DeskewProcessor extends Processor{
             if (zIndex == (framePerVolume - 1)){
                 deskewVolumeid++;
             }
-        }
-                   
-        pc.outputImage(image);  
-        if(atAcquisitionEnd(image) && saveImage){
+        } 
+        
+        if(atAcquisitionEnd(image) && saveDeskew){
             try {
-            //deskew.save(Datastore.SaveMode.MULTIPAGE_TIFF, savePath);
             deskew.freeze();
             deskew.save(Datastore.SaveMode.MULTIPAGE_TIFF, savePath);
             deskew.close();
@@ -119,9 +119,11 @@ public class DeskewProcessor extends Processor{
             Logger.getLogger(DeskewProcessor.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
+        
+        pc.outputImage(image); 
     }
     
-    private boolean atInterval(Image image){
+    private boolean deskewRequested(Image image){
         int index = image.getCoords().getTimePoint();
         return (index % interval_ == 0);
     }
@@ -143,13 +145,14 @@ public class DeskewProcessor extends Processor{
     private Image deskewSingleImage(Image image, int framePerVolume, int newDeskewSize, float deskewFactor){
         Image newImage, imageFlip;
         
+        //TODO: flip and rotate image using user specific parameters.
         ImageProcessor proc = studio_.data().ij().createProcessor(image);
-        proc.flipHorizontal();
+        proc.flipHorizontal();      //flip and rotate according current Yosemite eSPIM setup
         proc = proc.rotateRight();
         imageFlip = studio_.data().ij().createImage(proc, image.getCoords(), image.getMetadata());
         
         short[] deskewpixels = new short[imageHight * newDeskewSize];
-        short rawpixels[] =(short[]) imageFlip.getRawPixels();        //reference to rawpixels of image
+        short rawpixels[] =(short[]) imageFlip.getRawPixels();//reference to rawpixels of image
         
         Coords.CoordsBuilder coordsBuilder = image.getCoords().copy();               //get coords builder
         Metadata.MetadataBuilder metadataBuilder = image.getMetadata().copy();        //get metadata builder
@@ -162,9 +165,8 @@ public class DeskewProcessor extends Processor{
         int nz = framePerVolume;
         short zeropad = 0;
         
-        //TODO: Bottom-up flip; rotate 270degree
         for(int yout=0; yout < imageHight; yout++){
-            for(int xout=0; xout < newDeskewSize; xout++){
+            for(int xout=0; xout < newDeskewSize; xout++){ 
                 float xin = (float) ((xout - newDeskewSize/2.) - deskewFactor*(zout-nz/2.) + imageWidth/2.);
                 if (xin >= 0 && xin < imageWidth - 1){
                     int index = yout*imageWidth + (int)Math.floor(xin);
