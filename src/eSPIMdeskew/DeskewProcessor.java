@@ -18,9 +18,13 @@ import org.micromanager.data.Image;
 import org.micromanager.data.Processor;
 import org.micromanager.data.ProcessorContext;
 import org.micromanager.acquisition.SequenceSettings;
+import org.micromanager.data.internal.multipagetiff.StorageMultipageTiff;
+import org.micromanager.data.Storage;
+import org.micromanager.internal.MMStudio;
 import org.micromanager.data.Datastore;
 import org.micromanager.data.Coords;
 import org.micromanager.data.Metadata;
+import org.micromanager.display.DisplayWindow;
 /**
  *
  * @author Yina
@@ -38,7 +42,10 @@ public class DeskewProcessor extends Processor{
     public int framePerVolume;
     public double deskewfactor;
     static boolean startDeskewDisplay = false;
+    public boolean saveImage;
     public String savePath;
+    public Storage fileSaver;
+    public DisplayWindow displayDeskew;
     
     public static int interval_;
     
@@ -53,6 +60,7 @@ public class DeskewProcessor extends Processor{
         double zstep = Configurator_.getZstep();
         double angle = Configurator_.getAngle();
         int pixelsize = Configurator_.getPixelsize();
+        saveImage = Configurator_.getSaveFileCheckbox();
         
         imageWidth = (int) mmc.getImageWidth();
         imageHight = (int) mmc.getImageHeight();
@@ -71,33 +79,45 @@ public class DeskewProcessor extends Processor{
         }
         
         if(atInterval(image)){
-            //initialize deskew datastore at the beginning
+            //initialize deskew multipage TIFF datastore and display at the beginning
             if(atAcquisitionBeginning(image)){
-                savePath = studio_.displays().getCurrentWindow().getDatastore().getSavePath() + "_deskew";  
-                Image deskewed = deskewSingleImage(image, framePerVolume, newDeskewSize, (float) deskewfactor);
-                deskew = studio_.displays().show(deskewed);   
-            }else{
-                //add new images to deskew datastore
-                Image deskewed = deskewSingleImage(image, framePerVolume, newDeskewSize, (float) deskewfactor);
-                try {
-                    deskew.putImage(deskewed);
-                } catch (IOException ex) {
-                    Logger.getLogger(DeskewProcessor.class.getName()).log(Level.SEVERE, null, ex);
+                if(saveImage){
+                    savePath = studio_.displays().getCurrentWindow().getDatastore().getSavePath() + "_deskew";  
+                    try {
+                        deskew = studio_.data().createMultipageTIFFDatastore(savePath, true, StorageMultipageTiff.getShouldSplitPositions());
+                    } catch (IOException ex) {
+                        Logger.getLogger(DeskewProcessor.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }else{
+                    deskew = studio_.data().createRAMDatastore();
                 }
+                displayDeskew = studio_.displays().createDisplay(deskew);
+                studio_.displays().manage(deskew);
             }
+            
+            //add new images to deskew datastore
+            Image deskewed = deskewSingleImage(image, framePerVolume, newDeskewSize, (float) deskewfactor);
+            try {
+                deskew.putImage(deskewed);
+            } catch (IOException ex) {
+                Logger.getLogger(DeskewProcessor.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
             if (zIndex == (framePerVolume - 1)){
                 deskewVolumeid++;
             }
         }
                    
         pc.outputImage(image);  
-        
-        if(atAcquisitionEnd(image)){
+        if(atAcquisitionEnd(image) && saveImage){
             try {
-                    deskew.save(Datastore.SaveMode.MULTIPAGE_TIFF, savePath);
-                } catch (IOException ex) {
-                    Logger.getLogger(DeskewProcessor.class.getName()).log(Level.SEVERE, null, ex);
-                }
+            //deskew.save(Datastore.SaveMode.MULTIPAGE_TIFF, savePath);
+            deskew.freeze();
+            deskew.save(Datastore.SaveMode.MULTIPAGE_TIFF, savePath);
+            deskew.close();
+            } catch (IOException ex) {
+            Logger.getLogger(DeskewProcessor.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
     }
     
@@ -160,3 +180,4 @@ public class DeskewProcessor extends Processor{
         return newImage;
     }
 }
+ 
