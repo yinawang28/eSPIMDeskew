@@ -89,10 +89,10 @@ public class DeskewConfigurator extends javax.swing.JFrame implements ProcessorC
 
         jLabel_timepoint.setText("Volume interval to deskew:");
 
-        jTextField_interval.setText("10");
+        jTextField_interval.setText("1");
 
+        jCheckBox_saveDeskewFile.setSelected(true);
         jCheckBox_saveDeskewFile.setText("Save deskew file");
-        jCheckBox_saveDeskewFile.setActionCommand("Save deskew file");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);

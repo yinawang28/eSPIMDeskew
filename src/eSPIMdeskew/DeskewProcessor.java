@@ -39,6 +39,8 @@ public class DeskewProcessor extends Processor{
     
     public int imageWidth,imageHight, newDeskewSize;
     public int framePerVolume;
+    public int nchannel;
+    public int nposition = 1;
     public double deskewfactor;
     static boolean startDeskewDisplay = false;
     public boolean saveDeskew;
@@ -65,6 +67,10 @@ public class DeskewProcessor extends Processor{
         imageHight = (int) mmc.getImageWidth(); //swap height and width due to 90degree rotation
         imageWidth = (int) mmc.getImageHeight();
         framePerVolume = (int) seqSettings_.slices.size();
+        nchannel = (int) seqSettings_.channels.size();
+        if(seqSettings_.usePositionList){
+            nposition = (int) studio_.positions().getPositionList().getNumberOfPositions();
+        }
         
         // calculate parameters for deskew
         deskewfactor = (float)  Math.cos(angle * Math.PI / 180) * zstep / (pixelsize / 1000.0);
@@ -73,9 +79,11 @@ public class DeskewProcessor extends Processor{
     
     @Override
     public void processImage(Image image, ProcessorContext pc) {
-        //get the coords of the image
-        int zIndex = image.getCoords().getZ();       
-        if (zIndex == 0){
+        //TODO: current workflow only works properly when acquisition order is
+        //      time last. FIX.
+        //TODO: add color display in deskew
+        
+        if (atTimepointBeginning(image)){
             //check interval_ updating at the beginning of each volume
             interval_ = configurator_.getVolumeinterval();
         }
@@ -105,8 +113,8 @@ public class DeskewProcessor extends Processor{
                 Logger.getLogger(DeskewProcessor.class.getName()).log(Level.SEVERE, null, ex);
             }
             
-            if (zIndex == (framePerVolume - 1)){
-                deskewVolumeid++;
+            if (atTimepointEnd(image)){
+                deskewVolumeid++; // avoid wrong index when user change interval value during acquisition
             }
         } 
         
@@ -128,18 +136,39 @@ public class DeskewProcessor extends Processor{
         return (index % interval_ == 0);
     }
     
+    private boolean atTimepointBeginning(Image image){
+        int zIndex = image.getCoords().getZ();
+        int channelIndex = image.getCoords().getChannel();  
+        int positionIndex = image.getCoords().getStagePosition();
+        
+        return (zIndex == 0 && channelIndex == 0 && positionIndex == 0);
+    }
+    
+    private boolean atTimepointEnd(Image image){
+        int zIndex = image.getCoords().getZ();
+        int channelIndex = image.getCoords().getChannel();  
+        int positionIndex = image.getCoords().getStagePosition();
+        
+        return (zIndex == (framePerVolume-1) && channelIndex == (nchannel - 1) && positionIndex == (nposition - 1));
+    }
+    
     private boolean atAcquisitionBeginning(Image image){
         int timeIndex = image.getCoords().getTimePoint();
         int zIndex = image.getCoords().getZ();
-        return (timeIndex == 0 && zIndex == 0);
+        int channelIndex = image.getCoords().getChannel();  
+        int positionIndex = image.getCoords().getStagePosition();
+        
+        return (timeIndex == 0 && zIndex == 0 && channelIndex == 0 && positionIndex == 0);
     }
     
     private boolean atAcquisitionEnd(Image image){
         int timeIndex = image.getCoords().getTimePoint();
         int zIndex = image.getCoords().getZ();
+        int channelIndex = image.getCoords().getChannel();
+        int positionIndex = image.getCoords().getStagePosition();
         
         int timeEnd = (int) seqSettings_.numFrames;
-        return (timeIndex == (timeEnd-1) && zIndex == (framePerVolume-1));
+        return (timeIndex == (timeEnd-1) && zIndex == (framePerVolume-1) && channelIndex == (nchannel - 1) && positionIndex == (nposition - 1));
     }
     
     private Image deskewSingleImage(Image image, int framePerVolume, int newDeskewSize, float deskewFactor){
@@ -171,7 +200,7 @@ public class DeskewProcessor extends Processor{
                 if (xin >= 0 && xin < imageWidth - 1){
                     int index = yout*imageWidth + (int)Math.floor(xin);
                     float offset = (float) (xin - Math.floor(xin));
-                    
+                    //use rawpixels in unsigned way
                     short weighted = (short)((1-offset)*(int)(rawpixels[index]&0xffff) + offset*(int)(rawpixels[index+1]&0xffff));
                     deskewpixels[yout*newDeskewSize+xout] = weighted;
                 }else{
