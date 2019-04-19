@@ -9,6 +9,7 @@ package eSPIMdeskew;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.Arrays;
 import mmcorej.CMMCore;
 
 import ij.process.ImageProcessor;
@@ -19,7 +20,6 @@ import org.micromanager.data.Processor;
 import org.micromanager.data.ProcessorContext;
 import org.micromanager.acquisition.SequenceSettings;
 import org.micromanager.data.internal.multipagetiff.StorageMultipageTiff;
-import org.micromanager.data.Storage;
 import org.micromanager.data.Datastore;
 import org.micromanager.data.Coords;
 import org.micromanager.data.Metadata;
@@ -32,6 +32,8 @@ public class DeskewProcessor extends Processor{
     Studio studio_;
     CMMCore mmc;
     Datastore deskew;   //for deskewed data storage and display
+    Datastore deskewMIP;   //for deskewed data maximum intensity projection storage and display
+    
     DeskewConfigurator configurator_;   //Deskew processing settings
     SequenceSettings seqSettings_;      //get MDA acquisitiosn settings
     
@@ -42,14 +44,17 @@ public class DeskewProcessor extends Processor{
     public int nchannel;
     public int nposition = 1;
     public double deskewfactor;
-    static boolean startDeskewDisplay = false;
+
     public boolean saveDeskew;
     public String savePath;
+    public String savePathMIP;
     
-    public Storage fileSaver;
     public DisplayWindow displayDeskew;
+    public DisplayWindow displayDeskewMIP;
     
     public static int interval_;        //can be changed during acquisition
+    
+    short[] bufferMIP;
     
     public DeskewProcessor(Studio studio, DeskewConfigurator MyConfigurator)
     {
@@ -75,6 +80,9 @@ public class DeskewProcessor extends Processor{
         // calculate parameters for deskew
         deskewfactor = (float)  Math.cos(angle * Math.PI / 180) * zstep / (pixelsize / 1000.0);
         newDeskewSize = (int) Math.ceil(imageWidth + deskewfactor * framePerVolume); 
+        
+        bufferMIP = new short[imageHight * newDeskewSize];
+        Arrays.fill(bufferMIP, (short)0);
     }
     
     @Override
@@ -83,6 +91,7 @@ public class DeskewProcessor extends Processor{
         //      time last. FIX.
         //TODO: add color display in deskew
         
+        int zIndex = image.getCoords().getZ();
         if (atTimepointBeginning(image)){
             //check interval_ updating at the beginning of each volume
             interval_ = configurator_.getVolumeinterval();
@@ -92,23 +101,32 @@ public class DeskewProcessor extends Processor{
             //initialize deskew multipage TIFF datastore and display at the beginning
             if(atAcquisitionBeginning(image)){
                 if(saveDeskew){
-                    savePath = studio_.displays().getCurrentWindow().getDatastore().getSavePath() + "_deskew";  
+                    savePath = studio_.displays().getCurrentWindow().getDatastore().getSavePath() + "_deskew"; 
+                    savePathMIP = studio_.displays().getCurrentWindow().getDatastore().getSavePath() + "_deskew_MIP";
                     try {
                         deskew = studio_.data().createMultipageTIFFDatastore(savePath, true, StorageMultipageTiff.getShouldSplitPositions());
+                        deskewMIP = studio_.data().createMultipageTIFFDatastore(savePathMIP, true, StorageMultipageTiff.getShouldSplitPositions());
                     } catch (IOException ex) {
                         Logger.getLogger(DeskewProcessor.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }else{
                     deskew = studio_.data().createRAMDatastore();
+                    deskewMIP = studio_.data().createRAMDatastore();
                 }
                 displayDeskew = studio_.displays().createDisplay(deskew);
                 studio_.displays().manage(deskew);
+                displayDeskewMIP = studio_.displays().createDisplay(deskewMIP);
+                studio_.displays().manage(deskewMIP);
             }
             
             //add new images to deskew datastore
             Image deskewed = deskewSingleImage(image, framePerVolume, newDeskewSize, (float) deskewfactor);
             try {
                 deskew.putImage(deskewed);
+                if(zIndex == (framePerVolume - 1)){
+                    deskewMIP.putImage(creatMIPImage(bufferMIP, image));
+                    Arrays.fill(bufferMIP, (short) 0);
+                }
             } catch (IOException ex) {
                 Logger.getLogger(DeskewProcessor.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -123,6 +141,10 @@ public class DeskewProcessor extends Processor{
             deskew.freeze();
             deskew.save(Datastore.SaveMode.MULTIPAGE_TIFF, savePath);
             deskew.close();
+            
+            deskewMIP.freeze();
+            deskewMIP.save(Datastore.SaveMode.MULTIPAGE_TIFF, savePathMIP);
+            deskewMIP.close();
             } catch (IOException ex) {
             Logger.getLogger(DeskewProcessor.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -208,8 +230,28 @@ public class DeskewProcessor extends Processor{
                 }
             }
         }
+        maxProject(bufferMIP, deskewpixels);
         newImage = studio_.data().createImage(deskewpixels, newDeskewSize, imageHight, 2, 1, coords, metadata);
         return newImage;
+    }
+    
+    private void maxProject(short[] buffer, short[] newpixels){
+        for (int i = 0; i < imageHight * newDeskewSize; i++){
+            buffer[i] = (buffer[i] > newpixels[i])? buffer[i]:newpixels[i];
+        }
+    }
+    
+    private Image creatMIPImage(short[] buffer, Image image){
+        Image mipImage;
+        Coords.CoordsBuilder coordsBuilder = image.getCoords().copy();               //get coords builder
+        Metadata.MetadataBuilder metadataBuilder = image.getMetadata().copy();        //get metadata builder
+        coordsBuilder.time(deskewVolumeid);
+        coordsBuilder.z(0);  
+        Coords coords = coordsBuilder.build();
+        Metadata metadata = metadataBuilder.build();
+        
+        mipImage = studio_.data().createImage(buffer, newDeskewSize, imageHight, 2, 1, coords, metadata);
+        return mipImage;
     }
 }
  
