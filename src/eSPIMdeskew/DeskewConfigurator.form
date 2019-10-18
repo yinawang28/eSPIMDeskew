@@ -23,24 +23,8 @@
   <Layout>
     <DimensionLayout dim="0">
       <Group type="103" groupAlignment="0" attributes="0">
-          <Group type="102" alignment="1" attributes="0">
-              <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
-              <Group type="103" groupAlignment="0" attributes="0">
-                  <Component id="jCheckBox_saveDeskewFile" alignment="0" min="-2" max="-2" attributes="0"/>
-                  <Group type="102" alignment="0" attributes="0">
-                      <Component id="jLabel_timepoint" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace max="-2" attributes="0"/>
-                      <Component id="jTextField_interval" min="-2" pref="30" max="-2" attributes="0"/>
-                  </Group>
-              </Group>
-              <EmptySpace min="-2" pref="24" max="-2" attributes="0"/>
-          </Group>
           <Group type="102" attributes="0">
               <Group type="103" groupAlignment="0" attributes="0">
-                  <Group type="102" alignment="0" attributes="0">
-                      <EmptySpace min="-2" pref="18" max="-2" attributes="0"/>
-                      <Component id="jLabel_Angle" min="-2" pref="95" max="-2" attributes="0"/>
-                  </Group>
                   <Group type="103" alignment="0" groupAlignment="1" attributes="0">
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Group type="102" attributes="0">
@@ -61,14 +45,32 @@
                           <Component id="jTextField_Pixelsize" min="-2" pref="60" max="-2" attributes="0"/>
                       </Group>
                   </Group>
+                  <Group type="102" alignment="0" attributes="0">
+                      <EmptySpace min="-2" pref="18" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Component id="jCheckBox_saveDeskewFile" min="-2" max="-2" attributes="0"/>
+                          <Component id="jLabel_Angle" min="-2" pref="95" max="-2" attributes="0"/>
+                          <Component id="jLabel_timepoint" min="-2" max="-2" attributes="0"/>
+                          <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
+                          <Component id="jCheckBox_wideFieldCorrection" min="-2" max="-2" attributes="0"/>
+                          <Component id="jCheckBox_saveLogFile" alignment="0" min="-2" max="-2" attributes="0"/>
+                          <Component id="jLabel2" alignment="0" min="-2" max="-2" attributes="0"/>
+                          <Component id="jCheckBox_posAdj" alignment="0" min="-2" max="-2" attributes="0"/>
+                      </Group>
+                  </Group>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
                   <Component id="jLabel_zstepunit" min="-2" max="-2" attributes="0"/>
                   <Component id="jLabel_Pixelsizeunit" min="-2" max="-2" attributes="0"/>
                   <Component id="jLabel_angleunit" min="-2" max="-2" attributes="0"/>
+                  <Group type="103" alignment="0" groupAlignment="1" max="-2" attributes="0">
+                      <Component id="jTextField_posGroupNum" alignment="0" max="32767" attributes="0"/>
+                      <Component id="jTextField_interval" alignment="0" pref="30" max="32767" attributes="0"/>
+                  </Group>
+                  <Component id="jTextField_zStageName" alignment="0" min="-2" pref="54" max="-2" attributes="0"/>
               </Group>
-              <EmptySpace pref="23" max="32767" attributes="0"/>
+              <EmptySpace pref="76" max="32767" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -100,12 +102,28 @@
               </Group>
               <EmptySpace type="separate" max="-2" attributes="0"/>
               <Component id="jCheckBox_saveDeskewFile" min="-2" max="-2" attributes="0"/>
-              <EmptySpace pref="5" max="32767" attributes="0"/>
+              <EmptySpace type="unrelated" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="jLabel_timepoint" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="jTextField_interval" alignment="3" min="-2" pref="20" max="-2" attributes="0"/>
               </Group>
-              <EmptySpace min="-2" pref="26" max="-2" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
+              <Component id="jCheckBox_saveLogFile" min="-2" max="-2" attributes="0"/>
+              <EmptySpace min="-2" pref="23" max="-2" attributes="0"/>
+              <Component id="jCheckBox_wideFieldCorrection" min="-2" max="-2" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="jLabel1" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="jTextField_posGroupNum" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace type="unrelated" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="jTextField_zStageName" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="jLabel2" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace max="-2" attributes="0"/>
+              <Component id="jCheckBox_posAdj" min="-2" max="-2" attributes="0"/>
+              <EmptySpace max="32767" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -138,7 +156,7 @@
     </Component>
     <Component class="javax.swing.JTextField" name="jTextField_Pixelsize">
       <Properties>
-        <Property name="text" type="java.lang.String" value="100"/>
+        <Property name="text" type="java.lang.String" value="133"/>
       </Properties>
       <Events>
         <EventHandler event="mouseEntered" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="jTextField_PixelsizeMouseEntered"/>
@@ -183,6 +201,45 @@
       <Properties>
         <Property name="selected" type="boolean" value="true"/>
         <Property name="text" type="java.lang.String" value="Save deskew file"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="jCheckBox_saveLogFile">
+      <Properties>
+        <Property name="selected" type="boolean" value="true"/>
+        <Property name="text" type="java.lang.String" value="Save log file"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="jCheckBox_wideFieldCorrection">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Wide field correction"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JTextField" name="jTextField_posGroupNum">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="1"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JLabel" name="jLabel1">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Position Group Number"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JLabel" name="jLabel2">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="stage"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JTextField" name="jTextField_zStageName">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="TIZDrive"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jTextField_zStageNameActionPerformed"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="jCheckBox_posAdj">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Position adjusting"/>
       </Properties>
     </Component>
   </SubComponents>
