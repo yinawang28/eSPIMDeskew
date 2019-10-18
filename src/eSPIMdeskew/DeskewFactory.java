@@ -15,16 +15,16 @@ import org.micromanager.data.ProcessorFactory;
  */
 public class DeskewFactory implements ProcessorFactory{
     Studio studio_;
-    DeskewConfigurator MyConfigurator;
+    DeskewConfigurator myConfigurator;
 
     public DeskewFactory(DeskewConfigurator iConfigurator, Studio studio)
     {
         studio_=studio;
-        MyConfigurator=iConfigurator;
+        myConfigurator=iConfigurator;
     }
     
     @Override
     public Processor createProcessor() {
-        return new DeskewProcessor(studio_, MyConfigurator);
+        return new DeskewProcessor(studio_, myConfigurator);
     }
 }

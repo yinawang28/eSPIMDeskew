@@ -1,9 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package eSPIMdeskew;
 
 import org.micromanager.PropertyMap;
@@ -13,35 +7,29 @@ import org.micromanager.data.ProcessorFactory;
 import org.micromanager.data.ProcessorPlugin;
 import org.scijava.plugin.Plugin;
 import org.scijava.plugin.SciJavaPlugin;
+
 /**
- *
+ * MM2 on-the-fly plug-in for eSPIM deskew 
+ * This plug-in use MM2 PRocessorPlugin interface
+ * 
  * @author Yina
  */
 
 @Plugin(type = ProcessorPlugin.class)
 public class Deskew implements ProcessorPlugin, SciJavaPlugin{
     private Studio studio_;
-    DeskewConfigurator MyConfigurator;
-    
-    //methods in the dll
-    /*public native static void deskew_GPU(short inBuf[], int nx, int ny, int nz,
-				double deskewFactor, short outBuf[],
-                                int newNx, int extraShift);
-    public native static void GPUdevice();*/
+    DeskewConfigurator myConfigurator;
     
     @Override
-    public ProcessorConfigurator createConfigurator(PropertyMap settings) {
- 
-        //System.loadLibrary ("DeskewDLL"); // load dll
+    public ProcessorConfigurator createConfigurator(PropertyMap settings) {      
+        myConfigurator = new DeskewConfigurator(studio_, settings);
         
-        MyConfigurator = new DeskewConfigurator(studio_, settings);
-        
-        return MyConfigurator;
+        return myConfigurator;
     }
 
     @Override
     public ProcessorFactory createFactory(PropertyMap settings) {
-        return new DeskewFactory(MyConfigurator, studio_);
+        return new DeskewFactory(myConfigurator, studio_);
     }
 
     @Override

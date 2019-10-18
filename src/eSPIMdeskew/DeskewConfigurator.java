@@ -3,6 +3,7 @@ package eSPIMdeskew;
 import org.micromanager.PropertyMap;
 import org.micromanager.Studio;
 import org.micromanager.data.ProcessorConfigurator;
+import org.micromanager.acquisition.SequenceSettings;
 /**
  *
  * @author Yina
@@ -16,7 +17,8 @@ public class DeskewConfigurator extends javax.swing.JFrame implements ProcessorC
     public DeskewConfigurator() {
         initComponents();
     }
-     public DeskewConfigurator(Studio studio, PropertyMap settings) {
+    
+    public DeskewConfigurator(Studio studio, PropertyMap settings) {
         initComponents();
         studio_=studio;
     }
@@ -302,7 +304,7 @@ public class DeskewConfigurator extends javax.swing.JFrame implements ProcessorC
     private javax.swing.JTextField jTextField_zStageName;
     private javax.swing.JTextField jTextField_zstep;
     // End of variables declaration//GEN-END:variables
-
+    
     public double getZstep() {
       return (double) Double.parseDouble(jTextField_zstep.getText());
     }
